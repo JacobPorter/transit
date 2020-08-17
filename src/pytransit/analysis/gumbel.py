@@ -530,15 +530,22 @@ class GumbelMethod(base.SingleConditionMethod):
         MEAN_DOMAIN_SPAN = 300
 
         if d == 0: return(0.00)
-        f = 1./(1.+math.exp(Kn*(MEAN_DOMAIN_SPAN-d)))
+        try:
+            f = 1./(1.+math.exp(Kn*(MEAN_DOMAIN_SPAN-d)))
+        except OverflowError:
+            sys.stderr.write("Sigmoid overflow. d: {} n: {}.\n".format(d, n))
+            sys.stderr.flush()
+            f = 2e-16
+        except ZeroDivisionError:
+            sys.stderr.write("Sigmoid zero division. d: {} n: {}.\n".format(d, n))
+            sys.stderr.flush()
+            f = float("inf")
         #if n in self.cache_nn: return f/self.cache_nn[n]
         tot = 0
         N = int(n+1)
         for i in range(1,N): tot += 1.0/(1.0+math.exp(Kn*(MEAN_DOMAIN_SPAN-i)))
         self.cache_nn[n] = tot
         return f/tot
-
-
 
 
 
