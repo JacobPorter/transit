@@ -349,8 +349,8 @@ class GumbelMethod(base.SingleConditionMethod):
         T = G.local_gene_span()[ii_good]
 
         self.transit_message("Doing Regression")
-        mu_s, temp, sigma_s = stat_tools.regress(R, S) # Linear regression to estimate mu_s, sigma_s for span data
-        mu_r, temp, sigma_r = stat_tools.regress(S, R) # Linear regression to estimate mu_r, sigma_r for run data
+        mu_s, temp, sigma_s = stat_tools.regress(R, S, self.output.name.encode('utf-8')) # Linear regression to estimate mu_s, sigma_s for span data
+        mu_r, temp, sigma_r = stat_tools.regress(S, R, self.output.name.encode('utf-8')) # Linear regression to estimate mu_r, sigma_r for run data
 
         N_GENES = len(G)
         N_GOOD = sum(ii_good)
@@ -414,10 +414,13 @@ class GumbelMethod(base.SingleConditionMethod):
             #Update progress
             text = "Running Gumbel Method... %5.1f%%" % (100.0*(count+1)/(self.samples+self.burnin))
             self.progress_update(text, count)
-
-
-        ZBAR = numpy.apply_along_axis(numpy.mean, 1, Z_sample)
-        (ess_t, non_t) = stat_tools.bayesian_ess_thresholds(ZBAR)
+            
+        try:
+            ZBAR = numpy.apply_along_axis(numpy.mean, 1, Z_sample)
+            (ess_t, non_t) = stat_tools.bayesian_ess_thresholds(ZBAR)
+        except ValueError:
+            print("ValueError in ZBAR calculation: {} {}".format(Z_sample, self.output.name.encode('utf-8')), file=sys.stderr)
+            ess_t, non_t = float("inf"), -float("inf")
 
         #Orf    k   n   r   s   zbar
         self.output.write("#Gumbel\n")

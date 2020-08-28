@@ -1,5 +1,6 @@
 import math
 import numpy
+import sys
 import scipy.stats
 
 
@@ -263,7 +264,7 @@ def isEven(x):
 
 #
 
-def regress(X,Y):
+def regress(X,Y,message=""):
     """Performs linear regression given two vectors, X, Y."""
     N = len(X)
     xbar = numpy.average(X)
@@ -275,11 +276,13 @@ def regress(X,Y):
 
     yfit = [ A0 + B *X[i] for i in range(N)]
     yres = [Y[i] - (A0 + B *X[i]) for i in range(N)]
-    var = sum([math.pow(yres[i],2) for i in range(N) ])/(N-2)
-    std = math.sqrt(var)
-
+    try:
+        var = sum([math.pow(yres[i],2) for i in range(N) ])/(N-2)
+        std = math.sqrt(var)
+    except ZeroDivisionError:
+        std = float("inf")
+        print("ZeroDivisionError in regression: {}".format(message),file=sys.stderr)
     return(B, A0, std)
-
 #
 
 def boxcoxtransform(x, lambdax):
